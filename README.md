@@ -13,48 +13,24 @@ Extra resources to help out:
 # Transformers: 
 [Simple video](https://www.youtube.com/watch?v=wjZofJX0v4M)
 
- **Transformers** are a type of deep neutal network, that takes a sequence of data (such as text), understands how each element in the sequence relates to the others and predicts what comes next.
+ **Transformers** are a type of deep neural network that takes a sequence of data (such as text), understands how each element in the sequence relates to the others and predicts what comes next.
 
 ### How it works
 
-#### Embedding + positional info
+#### Embedding + positional encoding
 In large language models (LLMs), a transformer understands how words in a sentence relate to each other so it can capture meaning and generate the next word.
 
-<img src="assets/definitions/prediction.png" width="50%" alt="Transformers definition">
+> **"The cat sat ..."**
 
-The model does this by embedding each input token into a vector that captures its meaning and send it to the transformer block.
+The model does this by separating the sentence into small sections called **tokens**. Then we embed each input token into a vector (a list of numbers) that captures its meaning.
 
-<img src="assets/definitions/embedding.png" width="50%" alt="Transformers definition">
-
-#### Example:
-
-Let’s say our vocabulary has three words: **["king", "queen", "apple"]**
 
 $$
 E =
 \begin{bmatrix}
-0.82 & 0.14 & 0.56 & 0.33 \\\\
-0.80 & 0.18 & 0.60 & 0.35 \\\\
-0.10 & 0.90 & 0.12 & 0.85
-\end{bmatrix},
-\quad
-t_{king} =
-\begin{bmatrix}
-1 \\\\
-0 \\\\
-0
-\end{bmatrix}
-$$
-
-Then the embedding for **"king"** is:
-
-$$
-x_{king} = E \cdot t_{king} =
-\begin{bmatrix}
-0.82 \\\\
-0.14 \\\\
-0.56 \\\\
-0.33
+0.2 & 0.4 & 0.1 \\\\
+0.6 & 0.1 & 0.8 \\\\
+0.9 & 0.7 & 0.3
 \end{bmatrix}
 $$
 
