@@ -13,7 +13,7 @@ Extra resources to help out:
 # Transformers: 
 [Simple video](https://www.youtube.com/watch?v=wjZofJX0v4M)
 
- **Transformers** are a type of deep neural network that takes a sequence of data (such as text), understands how each element in the sequence relates to the others and predicts what comes next.
+ **Transformers** are a type of deep neural network architecture that takes a sequence of data (such as text), understands how each element in the sequence relates to the others and predicts what comes next.
 
 ### How it works
 
@@ -21,7 +21,7 @@ In large language models (LLMs), a transformer understands how words in a senten
 
 > **"The cat sat ..."**
 
-The model does this by separating the sentence into small sections called **tokens**. Then we embed each input token into a vector (a list of numbers) that captures its meaning.
+The model does this by separating the sentence into small sections called **tokens** (sections that can be a full word but not always can be section of a word). Then we embed each input token into a vector (a list of numbers) that captures its meaning.
 
 
 $$
@@ -31,20 +31,36 @@ E =
 0.6 & 0.1 & 0.8 \\\\
 0.9 & 0.7 & 0.3
 \end{bmatrix}
+
+The = 
+\begin{bmatrix}
+0.2 & 0.4 & 0.1
+\end{bmatrix}
+
+cat= 
+\begin{bmatrix}
+0.6 & 0.1 & 0.8 
+\end{bmatrix}
+
+sat= 
+\begin{bmatrix}
+0.9 & 0.7 & 0.3
+\end{bmatrix}
 $$
 
-#### Transformer Block
+
+#### Transformer Blocks
 
 
 
-The transformer blocks, decides which words are most relevant to each other (Self-Attention layer) and then refines and transform the information (Feedfoward Neural Network).
+The transformer blocks, decides which token are most relevant to each other (Self-Attention layer) and then refines and transform the information (Feedfoward Neural Network).
 
 <img src="assets/definitions/transformer.png" width="50%" alt="Transformers definition">
 
 ##### Self Attention
 
 
-Each word creates three versions of itself:  
+Each token creates three versions of itself:  
 - **Query (Q):** What it’s looking for  
 - **Key (K):** What it offers  
 - **Value (V):** Its meaning  
@@ -59,20 +75,12 @@ $$
 \text{Scores} = QK^T
 $$
 
-Higher scores mean the words are more related.  
-We scale and apply **softmax** so the values act like attention weights:
-
-$$
-\text{Attention} = \text{softmax}\!\left(\frac{QK^T}{\sqrt{d_k}}\right)
-$$
-
-Finally, each word mixes the information from all others using these weights:
+Higher scores mean the words are more related. Finally, each word mixes the information from all others using these weights:
 
 $$
 \text{Output} = \text{Attention} \times V
 $$
 
-So “king” gives more attention to “queen” than “apple,” updating its meaning with relevant context 
 
 #### Feedforward Neural Network + Normalize
 
