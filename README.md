@@ -17,7 +17,6 @@ Extra resources to help out:
 
 ### How it works
 
-#### Embedding + positional encoding
 In large language models (LLMs), a transformer understands how words in a sentence relate to each other so it can capture meaning and generate the next word.
 
 > **"The cat sat ..."**
