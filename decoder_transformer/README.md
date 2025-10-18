@@ -1,5 +1,8 @@
 # Decoder GPT
-
+Decoder (French):
+Stack of N decoder blocks, each block has:
+Masked self-attention on target tokens (causal mask).
+Cross-attention over encoder_hidden_states (K,V from encoder; Q from decoder).
 
 **Goal:** Build a decoder (GPT) from scratch
 
@@ -171,3 +174,12 @@ Notes
   - `python3 training.py --resume` (auto picks `latest.pt` if present)
   - Or specify: `python3 training.py --resume --ckpt assets/checkpoints/gpt-YYYYmmdd-HHMMSS-step3000.pt`
 - Safe interrupt: Press Ctrl+C; the script saves a checkpoint at the next safe point and exits.
+
+
+## Steps and connections
+
+- Implement `decoder.py` with embeddings, masked self-attn, cross-attn, FFN blocks.
+- Inputs: `tgt_input_ids`, `encoder_hidden_states`, masks → logits.
+- Tie decoder token embedding with LM head for efficiency.
+- Use causal mask internally; mask PAD tokens in self-attention too.
+- Connect in `machine_translation/model.py` as the generation component.
