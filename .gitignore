@@ -1,0 +1,85 @@
+# OS
+.DS_Store
+Thumbs.db
+Icon?
+Desktop.ini
+
+# Python bytecode / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+.python-version
+__pypackages__/
+
+# Packaging / build artifacts
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+sdist/
+wheels/
+share/python-wheels/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+.installed.cfg
+
+# Test and coverage
+.pytest_cache/
+.hypothesis/
+.cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+
+# Typing / lint caches
+.mypy_cache/
+.pytype/
+.pyre/
+.ruff_cache/
+
+# Editors / IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# ML experiment outputs and checkpoints
+runs/
+wandb/
+lightning_logs/
+outputs/
+checkpoints/
+assets/checkpoints/
+artifacts/
+tmp/
+temp/
+
+# Model checkpoint files
+*.pt
+
+# Local data directories (keep datasets out of git)
+data/
+datasets/
+
+# Env files
+.env
+.env.*
+*.env
