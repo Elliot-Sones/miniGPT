@@ -151,4 +151,27 @@ The word with the **highest probability** ("king") is chosen as the next word.
 
 # Applying:
 
-**Input** : Tiny shakespear
+**Input** : Tiny ShakespeaRe
+
+**Train**
+- Run: `python3 training.py`
+- Device auto-detects `mps` on Apple Silicon; falls back to `cpu`.
+- The script now saves a checkpoint at `assets/checkpoints/gpt-YYYYmmdd-HHMMSS.pt` and a convenient copy at `assets/checkpoints/latest.pt`.
+
+**Generate**
+- After training, sample text with:
+  - `python3 sample.py --prompt "ROMEO:" --max_new_tokens 300`
+- If needed, specify device: `--device cpu` or `--device mps`.
+- To use a specific checkpoint: `--ckpt assets/checkpoints/gpt-20241017-153800.pt`.
+
+Notes
+- Prompts should use characters seen during training (Tiny Shakespeare) for best results.
+- Checkpoint includes model hyperparameters and the character vocabulary, so generation does not require the training data.
+
+**Resume + Checkpoints**
+- Training now saves periodic checkpoints every `--save_interval` steps (default = `eval_interval`).
+- Latest checkpoint path: `assets/checkpoints/latest.pt`.
+- Resume training:
+  - `python3 training.py --resume` (auto picks `latest.pt` if present)
+  - Or specify: `python3 training.py --resume --ckpt assets/checkpoints/gpt-YYYYmmdd-HHMMSS-step3000.pt`
+- Safe interrupt: Press Ctrl+C; the script saves a checkpoint at the next safe point and exits.
