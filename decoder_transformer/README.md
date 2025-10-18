@@ -1,7 +1,7 @@
 # Decoder GPT
 
 
-**Goal:** Build a Transformer (GPT) from scratch
+**Goal:** Build a decoder (GPT) from scratch
 
 Extra resources to help out:
 
