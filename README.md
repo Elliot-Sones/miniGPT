@@ -29,6 +29,7 @@ I will be implementing them individually and training them individually to then 
 
 ### Encoder: Words -> context
 *Models like BERT*
+
 [Encoder ReadMe](/encoder_transformer/ReadMe.md)
 
 The encoder reads the english input token by token and creates context representation (a compressed mathematical understanding of the sentence). 
@@ -38,7 +39,7 @@ The encoder reads the english input token by token and creates context represent
 ### Decoder: context -> words
 
 *Models like ChatGPT*
-[Decoder ReadMe](/decoder_transformer/ReadMe.md)
+[Decoder ReadMe]()
 
 The decoder takes the encoders context and its own french inputs to generate what the next french word should be. 
 
