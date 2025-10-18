@@ -39,7 +39,8 @@ The encoder reads the english input token by token and creates context represent
 ### Decoder: context -> words
 
 *Models like ChatGPT*
-[Decoder ReadMe]()
+
+[Decoder ReadMe](/decoder_transformer/README.md)
 
 The decoder takes the encoders context and its own french inputs to generate what the next french word should be. 
 
