@@ -4,13 +4,16 @@ Since the release of the paper "Attention Is All You Need", transformers have be
 
 But this paper's primary application was actually machine translation so in this project I will build the same (and because llm cost a house to train now).
 
+---
 Sources to learn about transformers:
+
 [Attention Is All You Need](https://arxiv.org/abs/1706.03762)
 
 [Transformers-based Encoder-Decoder Models](https://huggingface.co/blog/encoder-decoder)
 
 [How Transformer LLMs Work - DeepLearning.AI course](https://www.deeplearning.ai/short-courses/how-transformer-llms-work/?utm_campaign=handsonllm-launch&utm_medium=partner)
 
+---
 
 
 ## Concept of transformers
