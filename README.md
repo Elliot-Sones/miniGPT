@@ -27,10 +27,10 @@ At their core, transformers can be seperated in 2 parts, encoders (understading 
 
 I will be implementing them individually and training them individually to then combine into the machine_translation folder.
 
-### Encoder: Words -> context
+### [Encoder](/encoder_transformer/README.md) Words -> context
 *Models like BERT*
 
-[Encoder ReadMe](/encoder_transformer/README.md)
+
 
 The encoder reads the english input token by token and creates context representation (a compressed mathematical understanding of the sentence). 
 
