@@ -83,3 +83,8 @@ datasets/
 .env
 .env.*
 *.env
+
+# data 
+.csv
+*.csv
+5
