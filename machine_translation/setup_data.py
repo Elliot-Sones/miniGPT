@@ -8,7 +8,7 @@ This script:
     optionally de-duplicates pairs.
  3) Creates deterministic train/val/test splits if missing, or preserves
     provided splits.
- 4) Saves cleaned CSVs with columns: en, fr, plus a stats.json summary.
+ 4) Saves cleaned CSVs with columns: en, fr.
 
 Usage (examples):
   python -m machine_translation.setup_data --dataset wmt14 --out_dir data/en_fr/wmt14
@@ -90,18 +90,53 @@ def ratio_ok(en_len: int, fr_len: int, min_ratio: float, max_ratio: float) -> bo
     return (r >= min_ratio) and (r <= max_ratio)
 
 
-def load_dataset(dataset_name: str):
+def load_dataset(dataset_name: str,
+                 server_slice_train: Optional[str] = None,
+                 server_slice_eval: Optional[str] = None):
+    """Load a dataset; optionally use server-side slicing to avoid full download.
+
+    server_slice_* accept values like "1000000" or "10%" and will be applied as
+    split strings: e.g., train[:1000000], validation[:10000], test[:10000].
+    """
     if dataset_name not in DATASET_CATALOG:
         raise ValueError(f"Unknown dataset '{dataset_name}'. Available: {list(DATASET_CATALOG)}")
     hf_id, hf_config = DATASET_CATALOG[dataset_name]
-    try:
-        ds = datasets.load_dataset(hf_id, hf_config)
-    except Exception as e:
-        raise RuntimeError(
-            f"Failed to load dataset {hf_id} with config {hf_config}.\n"
-            f"Ensure network access and that the dataset is available. Original error: {e}"
-        )
-    return ds
+
+    # If no slicing requested, load the full DatasetDict as before
+    if not server_slice_train and not server_slice_eval:
+        try:
+            return datasets.load_dataset(hf_id, hf_config)
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to load dataset {hf_id} with config {hf_config}.\n"
+                f"Ensure network access and that the dataset is available. Original error: {e}"
+            )
+
+    # Server-side sliced loads: build a dict of available splits
+    out = {}
+    # Train
+    if server_slice_train:
+        try:
+            out["train"] = datasets.load_dataset(hf_id, hf_config, split=f"train[:{server_slice_train}]")
+        except Exception:
+            pass
+    # Evaluation: try validation, valid, dev, test
+    for name in ["validation", "valid", "dev", "test"]:
+        if server_slice_eval:
+            try:
+                out[name] = datasets.load_dataset(hf_id, hf_config, split=f"{name}[:{server_slice_eval}]")
+            except Exception:
+                continue
+    if not out:
+        # Fall back to full load if slicing failed
+        try:
+            return datasets.load_dataset(hf_id, hf_config)
+        except Exception as e:
+            raise RuntimeError(
+                f"Failed to load dataset {hf_id} with config {hf_config}.\n"
+                f"Ensure network access and that the dataset is available. Original error: {e}"
+            )
+    return out
 
 
 def extract_en_fr(example: Dict) -> Optional[Tuple[str, str]]:
@@ -218,14 +253,17 @@ def deterministic_split(df, train_ratio: float, val_ratio: float, test_ratio: fl
     return train_df, val_df, test_df
 
 
-def save_stats_json(path: str, payload: Dict):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
+def _noop(*_args, **_kwargs):
+    return None
 
 
 def prepare(args: argparse.Namespace):
     print(f"Loading dataset: {args.dataset}")
-    ds = load_dataset(args.dataset)
+    ds = load_dataset(
+        args.dataset,
+        server_slice_train=args.server_slice_train,
+        server_slice_eval=args.server_slice_eval,
+    )
 
     # Consolidate pairs from available splits (heavy side: keep all available)
     raw_splits = []
@@ -309,29 +347,7 @@ def prepare(args: argparse.Namespace):
         test_df.to_csv(test_csv, index=False)
         print(f"Wrote train/test -> {train_csv} ({len(train_df)}), {test_csv} ({len(test_df)})")
 
-        stats = {
-            "dataset": args.dataset,
-            "preserve_original_splits": True,
-            "kept_total": kept_total,
-            "two_splits": True,
-            "split_counts": {
-                "train": len(train_df),
-                "test": len(test_df),
-            },
-            "filters": {
-                "lowercase": args.lowercase,
-                "max_src_chars": args.max_src_chars,
-                "max_tgt_chars": args.max_tgt_chars,
-                "max_src_words": args.max_src_words,
-                "max_tgt_words": args.max_tgt_words,
-                "ratio_metric": args.ratio_metric,
-                "min_ratio": args.min_ratio,
-                "max_ratio": args.max_ratio,
-                "dedup": args.dedup,
-                "max_examples_total": args.max_examples_total,
-            },
-        }
-        save_stats_json(os.path.join(out_dir, "stats.json"), stats)
+        _noop()
         return
 
     # Deterministic re-split
@@ -353,36 +369,7 @@ def prepare(args: argparse.Namespace):
 
     print(f"Wrote train/test -> {train_csv} ({len(train_df)}), {test_csv} ({len(test_df_merged)})")
 
-    stats = {
-        "dataset": args.dataset,
-        "preserve_original_splits": False,
-        "input_examples": before_dedup,
-        "kept_total": kept_total,
-        "two_splits": True,
-        "split_counts": {
-            "train": len(train_df),
-            "test": len(test_df_merged),
-        },
-        "filters": {
-            "lowercase": args.lowercase,
-            "max_src_chars": args.max_src_chars,
-            "max_tgt_chars": args.max_tgt_chars,
-            "max_src_words": args.max_src_words,
-            "max_tgt_words": args.max_tgt_words,
-            "ratio_metric": args.ratio_metric,
-            "min_ratio": args.min_ratio,
-            "max_ratio": args.max_ratio,
-            "dedup": args.dedup,
-            "max_examples_total": args.max_examples_total,
-        },
-        "ratios": {
-            "train_ratio": args.train_ratio,
-            "val_ratio": args.val_ratio,
-            "test_ratio": args.test_ratio,
-        },
-        "seed": args.seed,
-    }
-    save_stats_json(os.path.join(out_dir, "stats.json"), stats)
+    _noop()
 
 
 def build_argparser() -> argparse.ArgumentParser:
@@ -391,6 +378,12 @@ def build_argparser() -> argparse.ArgumentParser:
                    help="Which dataset to download and prepare")
     p.add_argument("--out_dir", type=str, default=os.path.join("machine_translation", "archive"),
                    help="Output directory (default: machine_translation/archive)")
+
+    # Server-side slicing to avoid downloading the full corpus
+    p.add_argument("--server_slice_train", type=str, default="1000000",
+                   help="Server-side slice for train split (e.g., '1000000' or '10%'). None downloads full.")
+    p.add_argument("--server_slice_eval", type=str, default="10000",
+                   help="Server-side slice for eval splits (validation/test). None downloads full.")
 
     # Cleaning and filtering options
     p.add_argument("--lowercase", action="store_true", help="Lowercase all text during normalization")

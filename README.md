@@ -13,6 +13,8 @@ Sources to learn about transformers:
 
 [How Transformer LLMs Work - DeepLearning.AI course](https://www.deeplearning.ai/short-courses/how-transformer-llms-work/?utm_campaign=handsonllm-launch&utm_medium=partner)
 
+[Encoder-Decoders](https://www.youtube.com/watch?v=0_4KEb08xrE)
+
 ---
 
 
@@ -65,7 +67,6 @@ python -m machine_translation.setup_data --dataset opus_books
 
 Artifacts will be saved under `machine_translation/archive/`:
 - `train.csv` and `test.csv` (columns: `en, fr`)
-- `stats.json` with summary counts and filter settings
 
 
 ## Steps and connections
