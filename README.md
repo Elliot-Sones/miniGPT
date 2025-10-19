@@ -25,7 +25,7 @@ At their core, transformers can be seperated in 2 parts, encoders (understading 
 
 <img src="assets/transformer.png" width=60% ></img>
 
-I will be implementing them individually and training them individually to then combine into the machine_translation folder.
+My goal is to make a english to french translator. I will test and run them seperately to understand each part fully then building and training a trasnformer from scratch.
 
 ### [Encoder](/encoder_transformer/README.md): Words -> context
 *Models like BERT*
