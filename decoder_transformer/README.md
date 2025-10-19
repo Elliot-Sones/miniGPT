@@ -1,18 +1,40 @@
-# Decoder GPT
-Decoder (French):
-Stack of N decoder blocks, each block has:
-Masked self-attention on target tokens (causal mask).
-Cross-attention over encoder_hidden_states (K,V from encoder; Q from decoder).
+# Decoder 
 
-**Goal:** Build a decoder (GPT) from scratch
+In this section we will be implementing the decoder. 
 
-Extra resources to help out:
+<img src="assets/definitions/decoder.png" width=60% >
+
+The **decoder** section also has their own multipleencoder layers to build context of the language (french languge in my example).
+
+Althouhg the encoder also adds in another layer after, that performs multi-head attention ([visit encoder read me for def of attention](/encoder_transformer/README.md)) over the output of the encoder stack.
 
 
-# Transformers: 
+
+Similar to the encoder, we employ residual connections
+around each of the sub-layers, followed by layer normalization. We also modify the self-attention
+sub-layer in the decoder stack to prevent positions from attending to subsequent positions. This
+masking, combined with fact that the output embeddings are offset by one position, ensures that the
+predictions for position i can depend only on the known outputs at positions less than i.
+
+
+
+
+
+
+
+
+
+# Decoder: 
 [Simple video](https://www.youtube.com/watch?v=wjZofJX0v4M)
 
  **Transformers** are a type of deep neural network architecture that takes a sequence of data (such as text), understands how each element in the sequence relates to the others and predicts what comes next.
+
+
+
+
+
+
+
 
 ### How it works
 
@@ -183,3 +205,17 @@ Notes
 - Tie decoder token embedding with LM head for efficiency.
 - Use causal mask internally; mask PAD tokens in self-attention too.
 - Connect in `machine_translation/model.py` as the generation component.
+
+
+
+
+
+
+Decoder (French:
+Stack of N decoder blocks, each block has:
+Masked self-attention on target tokens (causal mask).
+Cross-attention over encoder_hidden_states (K,V from encoder; Q from decoder).
+
+**Goal:** Build a decoder (GPT) from scratch
+
+Extra resources to help out:

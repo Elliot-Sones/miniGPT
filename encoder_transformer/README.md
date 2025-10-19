@@ -12,14 +12,20 @@ The Encoder consists of a stack of identical layers, where each layer has two su
 
 ### Input data
 
-- Tokenize english text (taking sections of word and give it a number)
+### Input Data Pipeline
 
-- To process the test, the length of the training data needs to be the same. Padding (PAD) is pad_token_id (default 0).
+1. **Tokenization**: Convert English text into token IDs (numbers)
+   - Example: "The cat sat" → [101, 1996, 4937, 1045]
 
-- Then we use masks to tell the modelw hich tokens are real vs padding (1 for real tokens, 0 for PAD)
+2. **Padding**: Make all sequences the same length for batch processing
+   - Shorter sequences get padded with special [PAD] tokens (ID: 0)
+   - Example: [101, 1996, 4937, 1045, 0, 0, 0]
 
-- Use learned positional embeddings 
+3. **Attention Masks**: Tell the model which tokens are real vs padding
+   - Real tokens: 1, Padding tokens: 0
+   - Example: [1, 1, 1, 1, 0, 0, 0]
 
+4. **Positional Embeddings**: Add learned position information to each token
 
 ###  Self attention: Multi-head self attention
 
@@ -36,12 +42,12 @@ V (Value) = the information each word carries.
 
 While **multi head attention** (scaled Dot product attention) builds multiple different types of relationships simutaneously. 
 
-For example: 
-- Head 1: Grammar relationships 
-- Head 2: Object relationship
-- Head 3: Contextual relationship
-- etc...
-
+**Example**: For "The cat sat on the mat"
+- Head 1: Links "cat" → "sat" (subject-verb relationship)
+- Head 2: Links "sat" → "on" (verb-preposition relationship) 
+- Head 3: Links "on" → "mat" (preposition-object relationship)
+- Head 4: Links "the" → "cat" and "the" → "mat" (article relationships)
+- etc ... 
 
 <img src="assets/multi_head.png" width=50%></img>
 
@@ -87,12 +93,41 @@ $x = LN(x)$ at the end of the encoder stack
 **Masked Language Modeling** is a great way to test encoding models by masking some of the tokens in a sentece and training to predict what the masked word should be. 
 This is what I imlpemented in **[mlm.py](/encoder_transformer/mlm.py)** file.
 
-To train and test the Masked Language Model: 
-    
-    #download the MLM data
-    python3 setupdata.py 
+To train and test the Masked Language Model:
 
+    1. **Prepare data**:
+    ```bash
+    python3 setupdata.py --dataset wikitext-2 --out_dir encoder_transformer/archive_mlm
+    ```
 
+    2. **Train the model**:
+    ```bash
+    python3 encoder_transformer/mlm.py --data_dir encoder_transformer/archive_mlm --epochs 3
+    ```
 
+    3. **Test only** (skip training):
+    ```bash
+    python3 encoder_transformer/mlm.py --data_dir encoder_transformer/archive_mlm --epochs 0
+    ```
 
+## 📁 File Structure
+
+```
+encoder_transformer/
+├── README.md                    # This file - explains the encoder
+├── encode.py                    # Main encoder architecture (shared)
+└── mlm/                        # MLM training and testing
+    ├── __init__.py             # Package marker
+    ├── train.py                # Training script for MLM model
+    ├── test.py                 # Testing script for trained model
+    ├── data.py                 # Data preparation for training
+    └── models/                 # Trained model weights
+        └── production_model.pt # Trained MLM model (created after training)
+```
+
+## 🚀 Quick Start
+
+1. **Train the model**: `python encoder_transformer/mlm/train.py`
+2. **Test the model**: `python encoder_transformer/mlm/test.py`
+3. **Use in production**: The trained model is automatically loaded by the main app
 
