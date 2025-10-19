@@ -27,6 +27,7 @@ import argparse
 import json
 import math
 import os
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -75,7 +76,7 @@ GLOBAL_DEFAULTS = {
     "data_dir": DEFAULT_DATA_DIR,
     "vocab_size": 30000,
     "max_len": 128,
-    "batch_size": 32,
+    "batch_size": 48,
     "epochs": 3,
     "lr": 3e-4,
     "weight_decay": 0.01,
@@ -100,10 +101,12 @@ def build_or_load_tokenizer(train_texts: List[str], out_dir: str, vocab_size: in
     os.makedirs(out_dir, exist_ok=True)
     tok_path = os.path.join(out_dir, "tokenizer.json")
     if os.path.exists(tok_path):
+        print(f"[tokenizer] Loaded cached tokenizer: {tok_path}", flush=True)
         tok = tokenizers.Tokenizer.from_file(tok_path)
         return tok
 
     # Train a simple BPE tokenizer
+    print("[tokenizer] Training BPE tokenizer (once). This may take a minute...", flush=True)
     model = tokenizers.models.BPE(unk_token="[UNK]")
     tok = tokenizers.Tokenizer(model)
     tok.normalizer = tokenizers.normalizers.Sequence([
@@ -120,8 +123,14 @@ def build_or_load_tokenizer(train_texts: List[str], out_dir: str, vocab_size: in
                 if t:
                     yield t
 
-    tok.train_from_iterator(_Iterator(train_texts), trainer=trainer)
+    # Provide length to enable progress display in `tokenizers`
+    try:
+        tok.train_from_iterator(_Iterator(train_texts), trainer=trainer, length=len(train_texts))
+    except TypeError:
+        # Older tokenizers may not support `length`; fall back without it
+        tok.train_from_iterator(_Iterator(train_texts), trainer=trainer)
     tok.save(tok_path)
+    print(f"[tokenizer] Saved tokenizer to: {tok_path}", flush=True)
     return tok
 
 
@@ -298,7 +307,7 @@ def load_texts(data_dir: str) -> Tuple[List[str], List[str], List[str]]:
 
 def evaluate(model: MaskedLanguageModel, data_loader: DataLoader, pad_id: int, mask_id: int, device: torch.device, mask_prob: float) -> Tuple[float, float]:
     model.eval()
-    total_loss = 0.0
+    total_loss_t = torch.tensor(0.0, device=device)
     total_correct = 0
     total_masked = 0
     with torch.no_grad():
@@ -308,9 +317,16 @@ def evaluate(model: MaskedLanguageModel, data_loader: DataLoader, pad_id: int, m
             masked_ids, labels = create_mlm_targets(
                 input_ids, pad_id, mask_id, model.lm_head.bias.numel(), mask_prob=mask_prob
             )
-            logits = model(masked_ids, attn)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-100)
-            total_loss += loss.item() * input_ids.size(0)
+            # Use autocast where beneficial (MPS/CUDA)
+            device_type = device.type if hasattr(device, "type") else str(device)
+            ac = (
+                torch.autocast(device_type=device_type, dtype=torch.float16)
+                if device_type in ("cuda", "mps") else nullcontext()
+            )
+            with ac:
+                logits = model(masked_ids, attn)
+                loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-100)
+            total_loss_t += loss.detach() * input_ids.size(0)
 
             # Accuracy on masked positions
             with torch.no_grad():
@@ -320,7 +336,7 @@ def evaluate(model: MaskedLanguageModel, data_loader: DataLoader, pad_id: int, m
                 if total_masked > 0:
                     total_correct += (preds[mask] == labels[mask]).sum().item()
 
-    avg_loss = total_loss / max(1, len(data_loader.dataset))
+    avg_loss = (total_loss_t / max(1, len(data_loader.dataset))).item()
     acc = (total_correct / max(1, total_masked)) if total_masked > 0 else 0.0
     return avg_loss, acc
 
@@ -356,7 +372,12 @@ def train_loop(args: TrainArgs):
     set_seed(args.seed)
     device = resolve_device(args.device)
 
+    print(f"[data] Loading CSVs from {args.data_dir}...", flush=True)
     train_texts, val_texts, test_texts = load_texts(args.data_dir)
+    print(
+        f"[data] Loaded: train={len(train_texts)} val={len(val_texts)} test={len(test_texts)}",
+        flush=True,
+    )
     tok = build_or_load_tokenizer(train_texts, out_dir=args.data_dir, vocab_size=args.vocab_size)
 
     # IDs for specials
@@ -371,9 +392,16 @@ def train_loop(args: TrainArgs):
     val_ds = MLMDataset(val_texts, tok, args.max_len, pad_id)
     test_ds = MLMDataset(test_texts, tok, args.max_len, pad_id)
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, drop_last=False)
-    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, drop_last=False)
-    test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, drop_last=False)
+    # DataLoader performance knobs
+    num_workers = max(1, (os.cpu_count() or 2) // 2)
+    pin_mem = (device.type == "cuda") if hasattr(device, "type") else False
+    dl_kwargs = dict(batch_size=args.batch_size, drop_last=False)
+    if num_workers > 0:
+        dl_kwargs.update(dict(num_workers=num_workers, persistent_workers=True, prefetch_factor=2, pin_memory=pin_mem))
+
+    train_loader = DataLoader(train_ds, shuffle=True, **dl_kwargs)
+    val_loader = DataLoader(val_ds, shuffle=False, **dl_kwargs)
+    test_loader = DataLoader(test_ds, shuffle=False, **dl_kwargs)
 
     # Model: build Encoder with the tokenizer's vocab and PAD id
     config = EncoderConfig(
@@ -393,41 +421,81 @@ def train_loop(args: TrainArgs):
         f"device={dev_name}, "
         f"train_samples={len(train_ds)}, val_samples={len(val_ds)}, test_samples={len(test_ds)}, "
         f"vocab_size={tok.get_vocab_size()}, max_len={args.max_len}, batch_size={args.batch_size}"
-    )
+    , flush=True)
 
     # Optimizer
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+    # Scheduler: linear warmup -> cosine decay
+    total_steps = max(1, args.epochs * len(train_loader))
+    warmup = max(0, args.warmup_steps)
+    def lr_lambda(step: int):
+        if step < warmup and warmup > 0:
+            return float(step + 1) / float(warmup)
+        # Cosine over remaining steps
+        progress = (step - warmup) / max(1, total_steps - warmup)
+        progress = min(max(progress, 0.0), 1.0)
+        return 0.5 * (1.0 + math.cos(math.pi * progress))
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
     # Simple training loop with validation
     best_val = float("inf")
     ckpt_path = os.path.join(args.data_dir, "checkpoint.pt")
 
     for epoch in range(1, args.epochs + 1):
+        print(f"[train] Starting epoch {epoch}/{args.epochs} ({len(train_loader)} batches)", flush=True)
         model.train()
         total = 0
-        total_loss = 0.0
-        for input_ids in train_loader:
+        total_loss_t = torch.tensor(0.0, device=device)
+        import time as _time
+        start_time = _time.time()
+        last_log = start_time
+        log_every = max(1, len(train_loader) // 20)  # ~5% progress logs
+        for step, input_ids in enumerate(train_loader, start=1):
             input_ids = input_ids.to(device)
             attn = build_attention_mask(input_ids, pad_id)
             masked_ids, labels = create_mlm_targets(
                 input_ids, pad_id, mask_id, tok.get_vocab_size(), mask_prob=args.mask_prob
             )
 
-            logits = model(masked_ids, attn)
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-100)
+            # Autocast for faster compute on MPS/CUDA
+            device_type = device.type if hasattr(device, "type") else str(device)
+            ac = (
+                torch.autocast(device_type=device_type, dtype=torch.float16)
+                if device_type in ("cuda", "mps") else nullcontext()
+            )
+            with ac:
+                logits = model(masked_ids, attn)
+                loss = F.cross_entropy(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-100)
 
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
             optimizer.step()
+            scheduler.step()
 
             bs = input_ids.size(0)
             total += bs
-            total_loss += loss.item() * bs
+            total_loss_t += loss.detach() * bs
 
-        train_loss = total_loss / max(1, total)
+            if step % log_every == 0 or step == 1:
+                now = _time.time()
+                elapsed = now - start_time
+                bps = total / max(1e-6, elapsed)
+                pct = 100.0 * step / len(train_loader)
+                est_total = elapsed / max(1e-6, step / len(train_loader))
+                eta = est_total - elapsed
+                avg_loss = (total_loss_t / max(1, total)).item()
+                print(
+                    f"[train] epoch {epoch} {pct:5.1f}%  step {step}/{len(train_loader)}  "
+                    f"avg_loss={avg_loss:.4f}  bps={bps:.1f}  eta={eta:.1f}s",
+                    flush=True,
+                )
+
+        train_loss = (total_loss_t / max(1, total)).item()
+        print("[val] Running validation...", flush=True)
         val_loss, val_acc = evaluate(model, val_loader, pad_id, mask_id, device, args.mask_prob)
-        print(f"Epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f} val_acc={val_acc:.4f}")
+        print(f"Epoch {epoch}: train_loss={train_loss:.4f} val_loss={val_loss:.4f} val_acc={val_acc:.4f}", flush=True)
 
         if val_loss < best_val:
             best_val = val_loss
@@ -436,14 +504,14 @@ def train_loop(args: TrainArgs):
                 "config": config.__dict__,
                 "tokenizer_path": os.path.join(args.data_dir, "tokenizer.json"),
             }, ckpt_path)
-            print(f"Saved checkpoint -> {ckpt_path}")
+            print(f"Saved checkpoint -> {ckpt_path}", flush=True)
 
     # Final test eval (load best)
     if os.path.exists(ckpt_path):
         state = torch.load(ckpt_path, map_location=device)
         model.load_state_dict(state["model"])
     test_loss, test_acc = evaluate(model, test_loader, pad_id, mask_id, device, args.mask_prob)
-    print(f"Test: loss={test_loss:.4f} acc={test_acc:.4f}")
+    print(f"Test: loss={test_loss:.4f} acc={test_acc:.4f}", flush=True)
 
 
 ###############################################################################
