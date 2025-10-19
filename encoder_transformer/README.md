@@ -65,6 +65,17 @@ $$
 $x = LN(x)$ at the end of the encoder stack
 
 
+## Implementation 
+
+[encode.py](/encoder_transformer/encode.py) file walks through these exact steps showing how to implement this. 
+
+
+**Masked Language Modeling** is a great way to test encoding models by masking some of the tokens in a setnece and training to predict what the masked word should be. 
+This is what I imlpemented in [mlm.py](/encoder_transformer/mlm.py) file.
+
+
+
+
 
 
 
