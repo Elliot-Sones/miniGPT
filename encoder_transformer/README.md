@@ -1,6 +1,6 @@
 # Encoder for Machine Translation 
 
-In this section we will be implementing the encoder.
+In this section we will be implementing the encoder and testing the encoder part of a transformer model.
 
 <img src="assets/encoder.png" width=70% ></img>
 
@@ -12,14 +12,18 @@ The Encoder consists of a stack of identical layers, where each layer has two su
 
 ### Input data
 
-- Tokenize english text to src_input_ids(B,T) 
+- Tokenize english text (taking sections of word and give it a number)
 
-Padding (PAD) is pad_token_id (default 0).
+- To process the test, the length of the training data needs to be the same. Padding (PAD) is pad_token_id (default 0).
 
-- Build src_attention_mask (B, T) with 1 for real tokens, 0 for PAD.
+- Then we use masks to tell the modelw hich tokens are real vs padding (1 for real tokens, 0 for PAD)
 
 - Use learned positional embeddings 
 
+
+###  Self attention: Multi-head self attention
+
+Attention builds information onte token by creating query, key and Value for each token.
 
 Q, K, V:
 Q (Query) = what this word is looking for.
@@ -27,9 +31,19 @@ K (Key) = a tag that describes each word.
 V (Value) = the information each word carries.
 
 
-###  Self attention: Multi-head attention
 
-<img src="assets/multi_head.png" width=60%></img>
+**Self attention** uses the information about the token (Q,K,V) to build relationships within the sentence. 
+
+While **multi head attention** (scaled Dot product attention) builds multiple different types of relationships simutaneously. 
+
+For example: 
+- Head 1: Grammar relationships 
+- Head 2: Object relationship
+- Head 3: Contextual relationship
+- etc...
+
+
+<img src="assets/multi_head.png" width=50%></img>
 
 $$
 Multihead(V,K,Q)= Concat(head_1,...,head_h)W^O
@@ -46,7 +60,7 @@ $$
 
 ### Layer 2: Feed foward
 
-Simple per token MLP used to transform/reine the representation
+Simple per token Multi-Layered Perceptron used to transform/refine the representations.
 
 
 ### Residuals + layernorm
@@ -67,13 +81,16 @@ $x = LN(x)$ at the end of the encoder stack
 
 ## Implementation 
 
-[encode.py](/encoder_transformer/encode.py) file walks through these exact steps showing how to implement this. 
+**[encode.py](/encoder_transformer/encode.py)** file walks through these exact steps showing how to implement this in code. 
 
 
-**Masked Language Modeling** is a great way to test encoding models by masking some of the tokens in a setnece and training to predict what the masked word should be. 
-This is what I imlpemented in [mlm.py](/encoder_transformer/mlm.py) file.
+**Masked Language Modeling** is a great way to test encoding models by masking some of the tokens in a sentece and training to predict what the masked word should be. 
+This is what I imlpemented in **[mlm.py](/encoder_transformer/mlm.py)** file.
 
-
+To train and test the Masked Language Model: 
+    
+    #download the MLM data
+    python3 setupdata.py 
 
 
 
