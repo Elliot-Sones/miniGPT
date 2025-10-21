@@ -6,8 +6,12 @@ In 2017, the paper “Attention Is All You Need” fundamentally transformed the
 
 Originally, the Transformer model was designed for machine translation, using an encoder–decoder architecture powered entirely by attention mechanisms. Although modern large language models have evolved into decoder-only architectures, the original Transformer remains the core foundation of nearly all current models.
 
-In this project, I will break down and implement each key component of the Transformer architecture presented in the paper, that now has shaped modern Artificial Intellignece as we know it.
+In this project, I will break down and implement the key components of the Transformer architecture ([encoder](encoder_transformer/README.md) and [decoder](decoder_transformer/README.md))  presented in the paper, that now has shaped modern Artificial Intellignece as we know it.
 
+<p align="center">
+  <img src="assets/Machine-translation.png" width="50%" alt="Convolutional Network for language processing" />
+  <p align="center"><em>Machine translation with transformer atchitecture</em></p>
+</p>
 
 ## 📚 Table of Contents
 
@@ -26,8 +30,8 @@ In this project, I will break down and implement each key component of the Trans
 Before Tranformer, sequence transduction architectures (like machine translation) where based on complex recurrent (RNN) or convolutional (CNN) neural networks. These models where built off of [encoders](#encoder-component-words---context) and [decoders](#decoder-component-context---words) framework with limited [attention mechanisms](#key-concepts) to process language sequentially (one word at a time). 
 
 <p align="center">
-  <img src="assets/cnn.jpeg" width="60%" alt="Convolutional Network for language processing" />
-  <p align="center"><em>Convolutional Network for language processing</em></p>
+  <img src="assets/RNN.png" width="60%" alt="Convolutional Network for language processing" />
+  <p align="center"><em>Recurrant Network for language processing</em></p>
 </p>
 
 However, these architectures was very hard to scale due their inherent sequencial nature that becomes critical for memory at longer sequence lengths.
@@ -59,9 +63,10 @@ Else here is the main concept of it:
   <p align="center"><em>Attention with Transformers</em></p>
 </p>
 
-**Attention Mechanism**: The core innovation that allows the model to focus on different parts of the input sequence when processing each element.
+**Attention Mechanism**: This is the core innovation that allows the model to focus on different parts of the input sequence when processing each element.
 
 **Self-Attention**: A mechanism where each position in a sequence can attend to all positions in the same sequence to compute a representation.
+
 
 **Multi-Head Attention**: Multiple attention mechanisms running in parallel, each learning different types of relationships between words.
 
@@ -93,6 +98,7 @@ The transformer model can be seperated in 2 parts: `Encoder` (left box) and an `
 
 
 ### Encoder Component (Words -> Context)
+[For more detail go to encoder_transformer README](encoder_transformer/README.md)
 
 **Purpose**: Processes the input sequence and creates rich contextual representations.
 
@@ -112,7 +118,7 @@ Input → Embedding → Multi-Head Self-Attention → Feed Forward → Output
 - Long-range dependencies between words
 
 ### Decoder Component (Context -> Words)
-
+[For more detail go to decoder_transformer README](decoder_transformer/README.md)
 **Purpose**: Generates output sequences based on encoder representations and previous outputs.
 
 **Key Features**:
