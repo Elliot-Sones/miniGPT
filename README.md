@@ -25,14 +25,19 @@ In this project, I will break down and implement each key component of the Trans
 
 Before Tranformer models, sequence transduction architectures where based on complex recurrent (RNN) or convolutional (CNN) neural networks, each include an [encoder](#encoder-component-words---context) and [decoder](#decoder-component-context---words) framework with [attention mechanisms](#key-concepts). 
 
-<img src="assets/cnn.jpeg" width=60%> Convolutional Network from language processing </img>
+<p align="center">
+  <img src="assets/cnn.jpeg" width="60%" alt="Convolutional Network for language processing" />
+  <p align="center"><em>Convolutional Network for language processing</em></p>
+</p>
 
 However, these architectures was very hard to scale due their inherent sequencial nature that becomes critical for memory at longer sequence lengths.
 
 This paper introduce the Transformer, relying entirely on an attention mechanisms that allows for significantly more parallelization called [self attention](#key-concepts).
 
-![Transformers](/assets/transformer.png)
-
+<p align="center">
+  <img src="assets/transformer.png" width="60%" alt="Transformer" />
+  <p align="center"><em>Transformer architecture</em></p>
+</p>
 With self-attention, the model can directly relate every position to every other position. This allows the model to relate and "remember" all the words from beofre in a constant number of operations.
 
 
