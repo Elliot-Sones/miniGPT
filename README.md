@@ -35,7 +35,7 @@ However, these architectures was very hard to scale due their inherent sequencia
 This paper introduce the Transformer, relying entirely on an attention mechanisms that allows for significantly more parallelization called [self attention](#key-concepts).
 
 <p align="center">
-  <img src="assets/transformer.png" width="60%" alt="Transformer" />
+  <img src="assets/transformer.png" width="55%" alt="Transformer" />
   <p align="center"><em>Transformer architecture</em></p>
 </p>
 With self-attention, the model can directly relate every position to every other position. This allows the model to relate and "remember" all the words from beofre in a constant number of operations.
@@ -44,21 +44,26 @@ With self-attention, the model can directly relate every position to every other
 
 ### Key Concepts
 
-Although the Transformer architecture is build around encoders and decoders. It is all based around the concpet of the attention mechanism. 
+#### Attention
+
+Although the Transformer architecture is build around encoders and decoders, it is all based around the concept of the attention mechanism. It is crucial for someone to fully understand this concept before moving on if you want to fully grasp transformers models so here are some extra resources I found useful: [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc), [Intro to transformers and attention](https://medium.com/@kalra.rakshit/introduction-to-transformers-and-attention-mechanisms-c29d252ea2c5)
+
+<p align="center">
+  <img src="assets/attention.png" width="65%" alt="Transformer" />
+  <p align="center"><em>Attention with Transformers</em></p>
+</p>
 
 **Attention Mechanism**: The core innovation that allows the model to focus on different parts of the input sequence when processing each element.
 
 **Self-Attention**: A mechanism where each position in a sequence can attend to all positions in the same sequence to compute a representation.
 
-
-
 **Multi-Head Attention**: Multiple attention mechanisms running in parallel, each learning different types of relationships between words.
 
-<img src="assets/Multi-head-attention.png" width=30%>
+<img src="assets/Multi-head-attention.png" width=25%>
 
 **Scaled Dot-Product**: This is the mathematical implementation of a single attention head.
 
-<img src="assets/Scaled-dot-product.png" width=30%>
+<img src="assets/Scaled-dot-product.png" width=20%>
 
 
 
