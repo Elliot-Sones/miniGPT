@@ -46,7 +46,11 @@ With self-attention, the model can directly relate every position to every other
 
 #### Attention
 
-Although the Transformer architecture is build around encoders and decoders, it is all based around the concept of the attention mechanism. It is crucial for someone to fully understand this concept before moving on if you want to fully grasp transformers models so here are some extra resources I found useful: [3Blue1Brown](https://www.youtube.com/watch?v=eMlx5fFNoYc), [Intro to transformers and attention](https://medium.com/@kalra.rakshit/introduction-to-transformers-and-attention-mechanisms-c29d252ea2c5)
+Although the Transformer architecture (described in the paper) is build around encoders and decoders, it is all based around the concept of the attention mechanism. 
+
+It is crucial for someone to fully understand this concept before moving on if you want to fully grasp transformers models so here are some extra resources I found useful: [3Blue1Brown (most recommended)](https://www.youtube.com/watch?v=eMlx5fFNoYc), [Intro to transformers and attention](https://medium.com/@kalra.rakshit/introduction-to-transformers-and-attention-mechanisms-c29d252ea2c5), 
+
+Else here is the main concept of it:
 
 <p align="center">
   <img src="assets/attention.png" width="65%" alt="Transformer" />
@@ -65,6 +69,19 @@ Although the Transformer architecture is build around encoders and decoders, it 
 
 <img src="assets/Scaled-dot-product.png" width=20%>
 
+
+#### Embedding + Unembedding 
+
+The transformer is only able to work if we are able to represent the human words into a way computers are able to understand: vectors. 
+
+We are able to do this by embedding the words in a process that is called tokenization. We are able to understand the vectors relationships within a model with vector of dimensions. 
+
+Once the process is done we then need to unembed the vectors to turn the vector into something humans can understand. 
+
+
+#### Positional encoding
+
+Since the model processes the sentence all at once, there is no recurrence or convolution. Thus we need to add positional encoding to the input of embeddings at the bottom of the encoder and decoder stacks. 
 
 
 ### Model architecture 
@@ -110,6 +127,7 @@ Input → Embedding → Masked Self-Attention → Cross-Attention → Feed Forwa
 - Language generation patterns
 - Translation mappings from source to target
 - Sequential dependencies in output language
+
 
 ### How They Work Together
 
