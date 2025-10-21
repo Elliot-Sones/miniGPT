@@ -1,14 +1,12 @@
 # Machine Translation with transformer model:
-### A reflective guide to "All You Need Is Attention" paper
+### [A reflective guide to "All You Need Is Attention" paper](https://arxiv.org/abs/1706.03762)
 
 
 In 2017, the paper “Attention Is All You Need” fundamentally transformed the field of natural language processing by introducing the Transformer architecture. This breakthrough laid the foundation for the large language models that dominate today’s AI landscape.
 
 Originally, the Transformer model was designed for machine translation, using an encoder–decoder architecture powered entirely by attention mechanisms. Although modern large language models have evolved into decoder-only architectures, the original Transformer remains the core foundation of nearly all current models.
 
-In this project, I will break down and implement each key component of the Transformer architecture presented in the paper, that has fundamentally shaped modern Artificial Intellignece as we know it.
-
-[Attention is all you need](https://arxiv.org/abs/1706.03762)
+In this project, I will break down and implement each key component of the Transformer architecture presented in the paper, that now has shaped modern Artificial Intellignece as we know it.
 
 
 ## 📚 Table of Contents
@@ -25,9 +23,9 @@ In this project, I will break down and implement each key component of the Trans
 
 ## What is a Transformer?
 
-Before Tranformer models, sequence transduction architectures where based on complex recurrent(RNN) or convolutional (CNN) neural networks, each include an [encoder](#encoder-component-words---context) and [decoder](#decoder-component-context---words) framework with [attention mechanisms](#key-concepts). 
+Before Tranformer models, sequence transduction architectures where based on complex recurrent (RNN) or convolutional (CNN) neural networks, each include an [encoder](#encoder-component-words---context) and [decoder](#decoder-component-context---words) framework with [attention mechanisms](#key-concepts). 
 
-![CNN](/assets/cnn.jpeg)
+<img src="assets/cnn.jpeg" width=60%> Convolutional Network from language processing </img>
 
 However, these architectures was very hard to scale due their inherent sequencial nature that becomes critical for memory at longer sequence lengths.
 
