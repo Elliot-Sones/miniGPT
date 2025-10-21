@@ -8,10 +8,7 @@ Originally, the Transformer model was designed for machine translation, using an
 
 In this project, I will break down and implement the key components of the Transformer architecture ([encoder](encoder_transformer/README.md) and [decoder](decoder_transformer/README.md))  presented in the paper, that now has shaped modern Artificial Intellignece as we know it.
 
-<p align="center">
-  <img src="assets/Machine-translation.png" width="50%" alt="Convolutional Network for language processing" />
-  <p align="center"><em>Machine translation with transformer atchitecture</em></p>
-</p>
+
 
 ## 📚 Table of Contents
 
@@ -27,7 +24,7 @@ In this project, I will break down and implement the key components of the Trans
 
 ## What is a Transformer?
 
-Before Tranformer, sequence transduction architectures (like machine translation) where based on complex recurrent (RNN) or convolutional (CNN) neural networks. These models where built off of [encoders](#encoder-component-words---context) and [decoders](#decoder-component-context---words) framework with limited [attention mechanisms](#key-concepts) to process language sequentially (one word at a time). 
+Before Transformers, sequence transduction architectures (like machine translation) where based on complex recurrent (RNN) or convolutional (CNN) neural networks. These models where built off of [encoders](#encoder-component-words---context) and [decoders](#decoder-component-context---words) framework as well with limited [attention mechanisms](#key-concepts) to process language sequentially (one word at a time). 
 
 <p align="center">
   <img src="assets/RNN.png" width="60%" alt="Convolutional Network for language processing" />
@@ -48,15 +45,15 @@ With attention, the Transformeer model can directly relate every position to eve
 
 
 
-### Key Concepts
+## Key Concepts
 
-#### Attention
+### Attention
 
 Although the Transformer architecture (described in the paper) is build around encoders and decoders, it is all based around the concept of the attention mechanism. 
 
 It is crucial for someone to fully understand this concept before moving on if you want to fully grasp transformers models so here are some extra resources I found useful: [3Blue1Brown (most recommended)](https://www.youtube.com/watch?v=eMlx5fFNoYc), [Intro to transformers and attention](https://medium.com/@kalra.rakshit/introduction-to-transformers-and-attention-mechanisms-c29d252ea2c5), 
 
-Else here is the main concept of it:
+I will go more into how and why it works in the encoder and decoder readme when implementing but here is an intuitive overview:
 
 <p align="center">
   <img src="assets/attention.png" width="65%" alt="Transformer" />
@@ -65,37 +62,58 @@ Else here is the main concept of it:
 
 **Attention Mechanism**: This is the core innovation that allows the model to focus on different parts of the input sequence when processing each element.
 
-**Self-Attention**: A mechanism where each position in a sequence can attend to all positions in the same sequence to compute a representation.
+**Self-Attention**: In self-attention, every word in a sequence can attend to all other words in that same sequence.
+
+This lets the model understand relationships between words regardless of their position — for example, learning that “it” refers to “the animal” in the sentence:
+
+    “The animal didn’t cross because it was too tired.”
 
 
-**Multi-Head Attention**: Multiple attention mechanisms running in parallel, each learning different types of relationships between words.
+
+**Multi-Head Attention**: Multiple attention mechanisms running in parallel, each learning different types of relationships between words (ex: semantic, positional, grammar, etc).
 
 <img src="assets/Multi-head-attention.png" width=25%>
 
-**Scaled Dot-Product**: This is the mathematical implementation of a single attention head.
+**Scaled Dot-Product**: This is the mathematical implementation of a single attention head shown by: 
+
+$$
+\text{Attention}(Q, K, V) = \text{softmax}\left( \frac{QK^T}{\sqrt{d_k}} \right)V
+$$
 
 <img src="assets/Scaled-dot-product.png" width=20%>
 
 
-#### Embedding + Unembedding 
+### Embedding + Unembedding 
 
 The transformer is only able to work if we are able to represent the human words into a way computers are able to understand: vectors. 
 
 We are able to do this by embedding the words in a process that is called tokenization. We are able to understand the vectors relationships within a model with vector of dimensions. 
 
-Once the process is done we then need to unembed the vectors to turn the vector into something humans can understand. 
+Once the process is done we then need to unembed the vectors to turn the vector into something humans can understand.
 
 
-#### Positional encoding
+### Positional encoding
 
 Since the model processes the sentence all at once, there is no recurrence or convolution. Thus we need to add positional encoding to the input of embeddings at the bottom of the encoder and decoder stacks. 
 
 
-### Model architecture 
-![Transformer Architecture](assets/transformer.png)
+### Summary: 
+
+The Transformer’s innovation lies in replacing recurrence with attention — particularly self-attention and multi-head attention, built upon the scaled dot-product.
+By doing so, it became the first architecture capable of understanding complex language relationships in parallel, at scale, and with remarkable contextual depth.
+
+
+## Model architecture 
+
+
+
+<p align="center">
+  <img src="assets/Machine-translation.png" width="50%" alt="Convolutional Network for language processing" />
+  <p align="center"><em>Machine translation with transformer atchitecture</em></p>
+</p>
+
 
 The transformer model can be seperated in 2 parts: `Encoder` (left box) and an `Decoder` (right box)
-
 
 ### Encoder Component (Words -> Context)
 [For more detail go to encoder_transformer README](encoder_transformer/README.md)
